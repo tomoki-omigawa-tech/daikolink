@@ -1,6 +1,6 @@
 # 画面設計書
 
-ワイヤーフレーム：Figma（`wireframes/` に書き出し画像を保存）
+ワイヤーフレーム：[Figma](https://www.figma.com/design/HdwrVosRCATDjHIMcPdPYE/DaikoLink_Week19)（書き出し画像は `wireframes/` に保存）
 講師画面はスマートフォン（393 × 852）、スタッフ画面はPC（1440 × 1024）を基準とする。
 
 ## 画面一覧

@@ -49,6 +49,8 @@ PHP 8.3 / Laravel 12 / MySQL 8.0 / Blade + Tailwind CSS + Alpine.js / SendGrid /
 | | [見積書](docs/plan/06_estimate.md) |
 
 ## 画面設計（Figma）
+[Figma：DaikoLink ワイヤーフレーム](https://www.figma.com/design/HdwrVosRCATDjHIMcPdPYE/DaikoLink_Week19)（EC画面は Week 19 の練習課題）
+
 ワイヤーフレーム（講師画面6・スタッフ画面1）の書き出し画像は [画面設計書](docs/design/01_screen-design.md) に掲載しています。
 
 ## タスク管理
