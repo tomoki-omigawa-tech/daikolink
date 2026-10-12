@@ -11,15 +11,21 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed the application's database.
+     * 架空データ（パスワードはすべて password）
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        User::factory()->staff()->create([
+            'name' => '教室 スタッフ',
+            'email' => 'staff@example.com',
+        ]);
 
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => '講師 太郎',
+            'email' => 'teacher@example.com',
         ]);
+
+        User::factory()->count(14)->create();
+        User::factory()->inactive()->count(2)->create();
     }
 }
