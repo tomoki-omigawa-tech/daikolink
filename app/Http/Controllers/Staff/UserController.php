@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Staff\StoreUserRequest;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -31,6 +32,7 @@ class UserController extends Controller
         $user = new User($request->safe()->only(['name', 'email', 'password']));
         $user->role = $request->validated('role');
         $user->save();
+        event(new Registered($user));
 
         return redirect()
             ->route('staff.users.index')
