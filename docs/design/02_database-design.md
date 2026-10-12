@@ -22,6 +22,7 @@ erDiagram
         varchar password
         enum role
         boolean is_active
+        varchar avatar
     }
     time_slots {
         bigint id PK
@@ -96,6 +97,7 @@ erDiagram
 | password | VARCHAR(255) | NO | - | パスワード（ハッシュ） |
 | role | ENUM('teacher','staff') | NO | 'teacher' | ロール |
 | is_active | BOOLEAN | NO | true | 在籍中か（退職者は false にしてログイン不可・通知対象外） |
+| avatar | VARCHAR(255) | YES | NULL | プロフィール画像のパス（Week 22で追加） |
 | remember_token | VARCHAR(100) | YES | NULL | ログイン保持 |
 | created_at / updated_at | TIMESTAMP | YES | NULL | 作成・更新日時 |
 
