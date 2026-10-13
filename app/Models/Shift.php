@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Grade;
 use App\Enums\RequestStatus;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,10 +12,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
+ * 1行＝生徒1人の授業（講師×日付×授業枠×席）
+ *
  * @property Carbon $date
- * @property int|null $student_count
+ * @property int $seat
+ * @property Grade|null $grade
  * @property-read TimeSlot $timeSlot
  * @property-read User $user
+ * @property-read Subject|null $subject
  */
 class Shift extends Model
 {
@@ -29,14 +34,17 @@ class Shift extends Model
         'user_id',
         'date',
         'time_slot_id',
-        'student_count',
+        'seat',
+        'grade',
+        'subject_id',
     ];
 
     protected function casts(): array
     {
         return [
             'date' => 'date',
-            'student_count' => 'integer',
+            'seat' => 'integer',
+            'grade' => Grade::class,
         ];
     }
 
@@ -50,6 +58,11 @@ class Shift extends Model
         return $this->belongsTo(TimeSlot::class);
     }
 
+    public function subject(): BelongsTo
+    {
+        return $this->belongsTo(Subject::class);
+    }
+
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
@@ -61,7 +74,7 @@ class Shift extends Model
     }
 
     /**
-     * 募集中または応募ありの依頼（1人ずつ募集なら最大2件）
+     * 募集中または応募ありの依頼
      */
     public function activeRequests(): HasMany
     {
@@ -70,23 +83,23 @@ class Shift extends Model
     }
 
     /**
-     * 埋まっている席の数（小学生集団は満席扱い）
+     * 埋まる席の数（生徒1人なら1、小学生集団は満席）
      */
     public function occupiedSeats(): int
     {
-        if ($this->timeSlot->kind->isGroup()) {
-            return self::MAX_SEATS;
-        }
-
-        return $this->student_count ?? self::MAX_SEATS;
+        return $this->timeSlot->kind->isGroup() ? self::MAX_SEATS : 1;
     }
 
     /**
-     * 表示用の生徒数（例：2人、集団）
+     * 表示用の授業内容（例：中2 数学、小学生集団）
      */
-    public function studentLabel(): string
+    public function lessonLabel(): string
     {
-        return $this->timeSlot->kind->isGroup() ? '集団' : $this->occupiedSeats().'人';
+        if ($this->timeSlot->kind->isGroup()) {
+            return '小学生集団';
+        }
+
+        return trim(($this->grade?->label() ?? '').' '.($this->subject->name ?? ''));
     }
 
     /**

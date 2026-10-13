@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Grade;
 use App\Models\Shift;
 use App\Models\TimeSlot;
 use App\Models\User;
@@ -16,7 +17,7 @@ class ShiftFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            // TimeSlotFactory は平日の枠なので、日付も平日にそろえる
+            // TimeSlotFactory は平日の中高生の枠なので、日付は平日・学年は中学生にそろえる
             'date' => function () {
                 $date = today()->addDays(fake()->numberBetween(1, 14));
                 while (! $date->isWeekday()) {
@@ -26,7 +27,9 @@ class ShiftFactory extends Factory
                 return $date->toDateString();
             },
             'time_slot_id' => TimeSlot::factory(),
-            'student_count' => 2,
+            'seat' => 1,
+            'grade' => Grade::J2,
+            'subject_id' => null,
         ];
     }
 }

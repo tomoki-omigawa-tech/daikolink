@@ -39,7 +39,9 @@ erDiagram
         bigint user_id FK
         date date
         bigint time_slot_id FK
-        tinyint student_count
+        tinyint seat
+        enum grade
+        bigint subject_id FK
         bigint updated_by FK
     }
     substitute_requests {
@@ -48,9 +50,6 @@ erDiagram
         bigint requester_id FK
         bigint substitute_id FK
         enum status
-        tinyint student_count
-        varchar subject
-        varchar grade
         varchar reason
         text handover_note
         timestamp confirmed_at
@@ -69,7 +68,9 @@ erDiagram
     }
     subjects {
         bigint id PK
-        varchar name UK
+        enum stage
+        varchar name
+        boolean is_active
     }
     user_subject {
         bigint user_id FK
@@ -86,7 +87,7 @@ erDiagram
 | substitute_requests | 代講依頼 | Must |
 | substitute_applications | 応募 | Must |
 | request_comments | 依頼ごとのコメント | Should |
-| subjects / user_subject | 科目と講師の担当科目 | Should（Week 22で実装） |
+| subjects / user_subject | 科目（区分つき）と講師の担当科目 | Must（Week 22で実装） |
 
 ※ Laravel 標準の sessions、password_reset_tokens、jobs、failed_jobs、cache も使用する。
 ※ 生徒の個人情報を保存するテーブルは作らない。
@@ -134,14 +135,18 @@ erDiagram
 | user_id | BIGINT UNSIGNED | NO | - | 担当講師ID（FK）。代講確定時に代講者へ更新 |
 | date | DATE | NO | - | 授業日 |
 | time_slot_id | BIGINT UNSIGNED | NO | - | 授業枠ID（FK） |
-| student_count | TINYINT UNSIGNED | YES | 2 | 見ている生徒数（1 or 2）。小学生集団は NULL（満席扱い） |
+| seat | TINYINT UNSIGNED | NO | 1 | 席（1＝左、2＝右）。講師1人が生徒2人を見るため |
+| grade | ENUM('e3'〜'e6','j1'〜'j3','h1'〜'h3') | YES | NULL | 生徒の学年（小3〜高3）。小学生集団は NULL |
+| subject_id | BIGINT UNSIGNED | YES | NULL | 科目ID（FK）。学年の区分に合う科目 |
 | updated_by | BIGINT UNSIGNED | YES | NULL | 最後に更新した人（FK）。スタッフの編集・代講確定で更新 |
 | created_at / updated_at | TIMESTAMP | YES | NULL | 作成・更新日時（updated_at を最終更新日時として講師に表示） |
 
-- インデックス：PRIMARY KEY (id)、UNIQUE (user_id, date, time_slot_id)、INDEX (date, time_slot_id)
-- 外部キー：user_id → users(id) ON DELETE RESTRICT、time_slot_id → time_slots(id) ON DELETE RESTRICT、updated_by → users(id) ON DELETE SET NULL
-- 1シフト＝講師×日付×授業枠。例：5限で小学生①②＋中高生を見る講師は「5限」「5限 1/2」「5限 2/2」の3行
-- 講師1人が同時に見られる生徒は2人まで。ある時刻に授業中の枠の生徒数（集団は2）の合計が2を超えないよう、登録・応募・確定時にアプリで確認する
+- インデックス：PRIMARY KEY (id)、UNIQUE (user_id, date, time_slot_id, seat)、INDEX (date, time_slot_id)
+- 外部キー：user_id → users(id) ON DELETE RESTRICT、time_slot_id → time_slots(id) ON DELETE RESTRICT、subject_id → subjects(id) ON DELETE SET NULL、updated_by → users(id) ON DELETE SET NULL
+- 1行＝生徒1人の授業（講師×日付×授業枠×席）。例：5限で左の席に中2数学、右の席の前半に小5算数・後半に小4国語なら「5限 席1 中2 数学」「5限 1/2 席2 小5 算数」「5限 2/2 席2 小4 国語」の3行
+- 授業枠の種類と学年を一致させる（小学生の学年は 1/2・2/2、中高生の学年は中高生の枠）。小学生集団は1行で満席扱い
+- 講師1人が同時に見られる生徒は2人まで（ある時刻に授業中の行の数。集団は2）。登録・応募・確定時にアプリで確認する
+- 代講依頼は生徒1人の授業（1行）ごとに出すため、「1人ずつ募集」も特別な仕組みなしで扱える
 
 ### substitute_requests（代講依頼）
 | カラム名 | 型 | NULL | デフォルト | 説明 |
@@ -151,9 +156,6 @@ erDiagram
 | requester_id | BIGINT UNSIGNED | NO | - | 依頼者ID（FK） |
 | substitute_id | BIGINT UNSIGNED | YES | NULL | 確定した代講者ID（FK） |
 | status | ENUM('open','applied','confirmed','cancelled','expired') | NO | 'open' | 状態 |
-| student_count | TINYINT UNSIGNED | YES | NULL | 代講してほしい生徒数（1 or 2。小学生集団は NULL）。生徒2人の枠を1人ずつ募集するときは、1人分の依頼を2件作る |
-| subject | VARCHAR(30) | YES | NULL | 科目（Should） |
-| grade | VARCHAR(20) | YES | NULL | 学年（Should） |
 | reason | VARCHAR(255) | YES | NULL | 理由 |
 | handover_note | TEXT | NO | - | 引き継ぎメモ |
 | confirmed_at | TIMESTAMP | YES | NULL | 確定日時（確定までの時間の計測に使用） |
@@ -189,20 +191,23 @@ erDiagram
 - インデックス：PRIMARY KEY (id)、INDEX (substitute_request_id, created_at)
 - 外部キー：substitute_request_id → substitute_requests(id) ON DELETE CASCADE、user_id → users(id) ON DELETE CASCADE
 
-### subjects / user_subject（担当科目・Should）
+### subjects / user_subject（担当科目）
 | テーブル | カラム | 説明 |
 |---|---|---|
-| subjects | id (PK)、name VARCHAR(30) UNIQUE、timestamps | 科目マスタ（Seeder） |
-| user_subject | user_id (FK)、subject_id (FK)、PRIMARY KEY (user_id, subject_id) | 講師が担当できる科目 |
+| subjects | id (PK)、stage ENUM('elementary','junior','senior','other')、name VARCHAR(30)、is_active BOOLEAN、sort_order、timestamps、UNIQUE (stage, name) | 科目マスタ。区分（小学・中学・高校・その他）＋名前で1科目（小学の国語と中学の国語は別）。スタッフが追加でき、削除の代わりに is_active で非表示にする |
+| user_subject | user_id (FK)、subject_id (FK)、PRIMARY KEY (user_id, subject_id) | 講師が担当できる科目（講師本人とスタッフがチェックで設定） |
+
+- 初期データ：小学（国語・算数・英語）、中学（国語・数学・英語・理科・社会）、高校（古典・論表・数ⅠA・数ⅡB・数Ⅲ・数C・物理基礎・化学基礎・生物基礎・物理・化学・生物）、その他（DOJO・キュレオ）
+- 学年と選べる科目：小学生は小学、中学生は中学とその他、高校生は高校とその他
 
 ## データ整合性の設計
 | ルール | 実現方法 |
 |---|---|
 | 同じ講師の同時刻の二重シフトを防ぐ | shifts の UNIQUE (user_id, date, time_slot_id) |
 | 同じ依頼を二重に確定しない | 確定処理をトランザクション内で行い、依頼行を `lockForUpdate()` で取得して status を再確認 |
-| 同じ授業枠の生徒数を超えて依頼しない | 作成時にトランザクション内で shift 行をロックし、未確定の依頼の生徒数の合計がシフトの生徒数を超えないか確認 |
-| 応募者の同じ時刻の生徒数が2人を超えない | 応募時と確定時の両方で、応募者のその時刻に授業中の枠の生徒数（集団は2）を合計して確認 |
-| 確定時のシフト更新 | 同じトランザクション内で、依頼の生徒数がシフトの生徒数と同じなら shifts.user_id を代講者に更新。1人分なら元のシフトの生徒数を1減らし、代講者側の同じ枠のシフトに1足す（なければ作る）。他の応募を rejected にし、updated_by を記録 |
+| 同じ授業（シフト）に未確定の依頼を重複して作らない | 作成時にトランザクション内で shift 行をロックし、status が open / applied の依頼がないか確認 |
+| 応募者の同じ時刻の生徒が2人を超えない | 応募時と確定時の両方で、応募者のその時刻に授業中のシフトの数（集団は2）を数えて確認 |
+| 確定時のシフト更新 | 同じトランザクション内で、shifts.user_id を代講者に、seat を代講者の空いている席に更新し、updated_by を記録。他の応募を rejected に変更 |
 | 授業開始後の不成立 | スケジューラで5分ごとに、開始時刻を過ぎた open / applied の依頼を expired に更新 |
 
 ## 全体シフト表のN+1対策

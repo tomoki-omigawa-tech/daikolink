@@ -16,7 +16,7 @@ class DatabaseConstraintTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_same_teacher_cannot_have_two_shifts_in_same_slot(): void
+    public function test_same_seat_cannot_be_used_twice(): void
     {
         $shift = Shift::factory()->create();
 
@@ -26,7 +26,22 @@ class DatabaseConstraintTest extends TestCase
             'user_id' => $shift->user_id,
             'date' => $shift->date,
             'time_slot_id' => $shift->time_slot_id,
+            'seat' => $shift->seat,
         ]);
+    }
+
+    public function test_teacher_can_have_two_students_in_the_same_slot(): void
+    {
+        $shift = Shift::factory()->create(['seat' => 1]);
+
+        Shift::factory()->create([
+            'user_id' => $shift->user_id,
+            'date' => $shift->date,
+            'time_slot_id' => $shift->time_slot_id,
+            'seat' => 2,
+        ]);
+
+        $this->assertSame(2, Shift::where('user_id', $shift->user_id)->count());
     }
 
     public function test_substitute_request_relations_and_status_cast(): void
@@ -54,9 +69,9 @@ class DatabaseConstraintTest extends TestCase
     public function test_group_class_occupies_all_seats(): void
     {
         $group = TimeSlot::factory()->create(['kind' => SlotKind::ElementaryGroup]);
-        $shift = Shift::factory()->create(['time_slot_id' => $group->id, 'student_count' => null]);
+        $shift = Shift::factory()->create(['time_slot_id' => $group->id, 'grade' => null]);
 
         $this->assertSame(Shift::MAX_SEATS, $shift->occupiedSeats());
-        $this->assertSame('集団', $shift->studentLabel());
+        $this->assertSame('小学生集団', $shift->lessonLabel());
     }
 }
