@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $date
  * @property int $seat
  * @property Grade|null $grade
+ * @property bool $is_manual
  * @property-read TimeSlot $timeSlot
  * @property-read User $user
  * @property-read Subject|null $subject
@@ -45,6 +46,7 @@ class Shift extends Model
             'date' => 'date',
             'seat' => 'integer',
             'grade' => Grade::class,
+            'is_manual' => 'boolean',
         ];
     }
 
@@ -61,6 +63,11 @@ class Shift extends Model
     public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function termLesson(): BelongsTo
+    {
+        return $this->belongsTo(TermLesson::class);
     }
 
     public function updatedBy(): BelongsTo

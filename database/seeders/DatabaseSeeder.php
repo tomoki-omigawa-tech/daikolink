@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SubjectSeeder::class,
             TimeSlotSeeder::class,
-            ShiftSeeder::class,
+            TermTimetableSeeder::class,
             SubstituteRequestSeeder::class,
         ]);
     }
