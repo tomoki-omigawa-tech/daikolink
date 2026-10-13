@@ -28,6 +28,14 @@ class DatabaseSeeder extends Seeder
         User::factory()->count(14)->create();
         User::factory()->inactive()->count(2)->create();
 
+        // ニックネーム（最後の数人はニックネームなし）
+        $nicknames = ['ひょー', 'そうた', 'はっちゃん', 'ゆうき', 'あず', 'みっきー', 'たっくん', 'りな', 'けんけん', 'まっちゃん', 'ゆず', 'しゅん', 'なっつ'];
+        User::teachers()->orderBy('id')->get()->each(function (User $teacher, int $i) use ($nicknames) {
+            if (isset($nicknames[$i])) {
+                $teacher->update(['nickname' => $nicknames[$i]]);
+            }
+        });
+
         $this->call([
             SubjectSeeder::class,
             TimeSlotSeeder::class,

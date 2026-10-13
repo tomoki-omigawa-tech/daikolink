@@ -32,6 +32,9 @@ class Term extends Model
         ];
     }
 
+    /**
+     * @return HasMany<TermLesson, $this>
+     */
     public function lessons(): HasMany
     {
         return $this->hasMany(TermLesson::class);

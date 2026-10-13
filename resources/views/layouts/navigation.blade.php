@@ -19,6 +19,9 @@
                         <x-nav-link :href="route('staff.users.index')" :active="request()->routeIs('staff.users.*')">
                             アカウント管理
                         </x-nav-link>
+                        <x-nav-link :href="route('staff.terms.index')" :active="request()->routeIs('staff.terms.*')">
+                            時間割
+                        </x-nav-link>
                     @endif
                 </div>
             </div>
@@ -78,6 +81,9 @@
             @if (Auth::user()->isStaff())
                 <x-responsive-nav-link :href="route('staff.users.index')" :active="request()->routeIs('staff.users.*')">
                     アカウント管理
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('staff.terms.index')" :active="request()->routeIs('staff.terms.*')">
+                    時間割
                 </x-responsive-nav-link>
             @endif
         </div>
