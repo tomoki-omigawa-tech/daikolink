@@ -25,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name',
+        'nickname',
         'email',
         'password',
         'avatar',
@@ -85,5 +86,29 @@ class User extends Authenticatable implements MustVerifyEmail
     public function subjects(): BelongsToMany
     {
         return $this->belongsToMany(Subject::class, 'user_subject')->orderBy('sort_order');
+    }
+
+    /**
+     * 苗字（氏名のスペースより前）
+     */
+    public function surname(): string
+    {
+        return preg_split('/[\s　]+/u', trim($this->name))[0] ?? $this->name;
+    }
+
+    /**
+     * 例：山田先生
+     */
+    public function surnameLabel(): string
+    {
+        return $this->surname().'先生';
+    }
+
+    /**
+     * 画面で大きく出す名前（ニックネーム、なければ「山田先生」）
+     */
+    public function displayName(): string
+    {
+        return $this->nickname ?: $this->surnameLabel();
     }
 }

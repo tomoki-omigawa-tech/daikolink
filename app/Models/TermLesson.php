@@ -58,6 +58,18 @@ class TermLesson extends Model
     }
 
     /**
+     * 表示用の授業内容（例：中2 数学、小学生集団）
+     */
+    public function lessonLabel(): string
+    {
+        if ($this->timeSlot->kind->isGroup()) {
+            return '小学生集団';
+        }
+
+        return trim(($this->grade?->label() ?? '').' '.($this->subject->name ?? ''));
+    }
+
+    /**
      * 埋まる席の数（生徒1人なら1、小学生集団は満席）
      */
     public function occupiedSeats(): int
