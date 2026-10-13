@@ -3,7 +3,9 @@
 namespace App\Support;
 
 use App\Enums\SlotKind;
+use App\Enums\TimetablePattern;
 use App\Models\Shift;
+use App\Models\Term;
 use App\Models\TermLesson;
 use App\Models\TimeSlot;
 use App\Models\User;
@@ -93,6 +95,30 @@ class TimetableGrid
             'warn' => $warn,
             'rowspan' => $rowspan,
             'colspan' => $colspan,
+        ];
+    }
+
+    /**
+     * 学期のある曜日の時間割を組み立てる（$firstUserId の講師を一番左、次に授業がある講師）
+     *
+     * @return array{slots: Collection<int, TimeSlot>, lessons: Collection<int, TermLesson>, teachers: Collection<int, User>, grid: list<array{period: int, label: string, time: string, rows: list<list<array<string, mixed>>>}>}
+     */
+    public static function forTermWeekday(Term $term, int $weekday, ?int $firstUserId = null): array
+    {
+        $pattern = $weekday === 6 ? TimetablePattern::Saturday : TimetablePattern::Weekday;
+        $slots = TimeSlot::ofPattern($pattern)->get();
+        $lessons = $term->lessons()->with(['timeSlot', 'subject'])->where('weekday', $weekday)->get();
+
+        $withLessons = $lessons->pluck('user_id')->flip();
+        $teachers = User::teachers()->active()->with('subjects')->get()
+            ->sortBy(fn (User $teacher) => ($teacher->id === $firstUserId ? '0' : ($withLessons->has($teacher->id) ? '1' : '2')).$teacher->displayName())
+            ->values();
+
+        return [
+            'slots' => $slots,
+            'lessons' => $lessons,
+            'teachers' => $teachers,
+            'grid' => self::build($teachers, $slots, $lessons),
         ];
     }
 }

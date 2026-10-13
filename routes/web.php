@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Staff\TermController;
 use App\Http\Controllers\Staff\UserController as StaffUserController;
+use App\Http\Controllers\TimetableController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -10,6 +11,10 @@ Route::redirect('/', '/dashboard');
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/timetable', [TimetableController::class, 'show'])
+    ->middleware(['auth', 'verified'])
+    ->name('timetable');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
