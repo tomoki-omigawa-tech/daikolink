@@ -27,5 +27,12 @@ class DatabaseSeeder extends Seeder
 
         User::factory()->count(14)->create();
         User::factory()->inactive()->count(2)->create();
+
+        $this->call([
+            SubjectSeeder::class,
+            TimeSlotSeeder::class,
+            ShiftSeeder::class,
+            SubstituteRequestSeeder::class,
+        ]);
     }
 }
