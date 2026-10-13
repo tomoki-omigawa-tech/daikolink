@@ -39,7 +39,7 @@ class TimetableGrid
 
                 $group = $mine->first(fn (TermLesson|Shift $lesson) => $lesson->timeSlot->kind->isGroup());
                 if ($group !== null) {
-                    $rows[0][] = self::cell($teacher, $group, 'group', 1, $rowCount, 2);
+                    $rows[0][] = self::cell((int) $period, $teacher, $group, 'group', 1, $rowCount, 2);
 
                     continue;
                 }
@@ -47,7 +47,7 @@ class TimetableGrid
                 foreach ([1, 2] as $seat) {
                     $secondary = $find($seat, SlotKind::Secondary);
                     if (! $hasElementary || $secondary !== null) {
-                        $rows[0][] = self::cell($teacher, $secondary, $secondary ? 'secondary' : 'empty', $seat, $rowCount, 1);
+                        $rows[0][] = self::cell((int) $period, $teacher, $secondary, $secondary ? 'secondary' : 'empty', $seat, $rowCount, 1);
 
                         continue;
                     }
@@ -55,10 +55,10 @@ class TimetableGrid
                     $first = $find($seat, SlotKind::ElementaryFirst);
                     $second = $find($seat, SlotKind::ElementarySecond);
                     if ($first !== null || $second !== null) {
-                        $rows[0][] = self::cell($teacher, $first, 'first', $seat, 1, 1);
-                        $rows[1][] = self::cell($teacher, $second, 'second', $seat, 1, 1);
+                        $rows[0][] = self::cell((int) $period, $teacher, $first, 'first', $seat, 1, 1);
+                        $rows[1][] = self::cell((int) $period, $teacher, $second, 'second', $seat, 1, 1);
                     } else {
-                        $rows[0][] = self::cell($teacher, null, 'empty', $seat, 2, 1);
+                        $rows[0][] = self::cell((int) $period, $teacher, null, 'empty', $seat, 2, 1);
                     }
                 }
             }
@@ -77,13 +77,14 @@ class TimetableGrid
     /**
      * @return array<string, mixed>
      */
-    private static function cell(User $teacher, TermLesson|Shift|null $lesson, string $type, int $seat, int $rowspan, int $colspan): array
+    private static function cell(int $period, User $teacher, TermLesson|Shift|null $lesson, string $type, int $seat, int $rowspan, int $colspan): array
     {
         $warn = $lesson !== null
             && $lesson->subject_id !== null
             && ! $teacher->subjects->contains('id', $lesson->subject_id);
 
         return [
+            'period' => $period,
             'teacher_id' => $teacher->id,
             'seat' => $seat,
             'type' => $type,

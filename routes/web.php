@@ -21,6 +21,8 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     Route::get('terms', [TermController::class, 'index'])->name('terms.index');
     Route::post('terms', [TermController::class, 'store'])->name('terms.store');
     Route::get('terms/{term}/timetable', [TermController::class, 'timetable'])->name('terms.timetable');
+    Route::put('terms/{term}/cell', [TermController::class, 'updateCell'])->name('terms.cell');
+    Route::post('terms/{term}/apply', [TermController::class, 'apply'])->name('terms.apply');
 });
 
 require __DIR__.'/auth.php';
