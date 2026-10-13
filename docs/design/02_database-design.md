@@ -3,6 +3,9 @@
 ## ER図
 ```mermaid
 erDiagram
+    terms ||--o{ term_lessons : "時間割"
+    term_lessons |o--o{ shifts : "から作られる"
+    users ||--o{ term_lessons : "担当する"
     users ||--o{ shifts : "担当する"
     time_slots ||--o{ shifts : "コマ"
     shifts ||--o{ substitute_requests : "代講依頼"
@@ -82,6 +85,8 @@ erDiagram
 | テーブル | 内容 | 優先度 |
 |---|---|---|
 | users | 講師・スタッフ（role で区別） | Must |
+| terms / term_lessons | 学期と学期の時間割（シフトの元） | Must（Week 22で追加） |
+| closed_days | 塾が休みの日 | Must（Week 22で追加） |
 | time_slots | 授業枠の定義（平日・土曜・講習。Seederで固定データ） | Must |
 | shifts | 日付 × コマ × 担当講師 | Must |
 | substitute_requests | 代講依頼 | Must |
@@ -138,6 +143,8 @@ erDiagram
 | seat | TINYINT UNSIGNED | NO | 1 | 席（1＝左、2＝右）。講師1人が生徒2人を見るため |
 | grade | ENUM('e3'〜'e6','j1'〜'j3','h1'〜'h3') | YES | NULL | 生徒の学年（小3〜高3）。小学生集団は NULL |
 | subject_id | BIGINT UNSIGNED | YES | NULL | 科目ID（FK）。学年の区分に合う科目 |
+| term_lesson_id | BIGINT UNSIGNED | YES | NULL | 時間割のどの授業から作られたか（FK、ON DELETE SET NULL） |
+| is_manual | BOOLEAN | NO | false | 日ごとのシフト管理や代講確定で個別に変更したシフト（時間割の反映で上書きしない） |
 | updated_by | BIGINT UNSIGNED | YES | NULL | 最後に更新した人（FK）。スタッフの編集・代講確定で更新 |
 | created_at / updated_at | TIMESTAMP | YES | NULL | 作成・更新日時（updated_at を最終更新日時として講師に表示） |
 
@@ -147,6 +154,44 @@ erDiagram
 - 授業枠の種類と学年を一致させる（小学生の学年は 1/2・2/2、中高生の学年は中高生の枠）。小学生集団は1行で満席扱い
 - 講師1人が同時に見られる生徒は2人まで（ある時刻に授業中の行の数。集団は2）。登録・応募・確定時にアプリで確認する
 - 代講依頼は生徒1人の授業（1行）ごとに出すため、「1人ずつ募集」も特別な仕組みなしで扱える
+
+### terms（学期）
+| カラム名 | 型 | NULL | デフォルト | 説明 |
+|---|---|---|---|---|
+| id | BIGINT UNSIGNED | NO | AUTO_INCREMENT | 学期ID（PK） |
+| fiscal_year | SMALLINT UNSIGNED | NO | - | 年度 |
+| term_no | TINYINT UNSIGNED | NO | - | 何学期（1〜3） |
+| start_date / end_date | DATE | NO | - | 開始日・終了日（スタッフが入力。学期どうしは重ならない） |
+| created_at / updated_at | TIMESTAMP | YES | NULL | 作成・更新日時 |
+
+- インデックス：PRIMARY KEY (id)、UNIQUE (fiscal_year, term_no)
+
+### term_lessons（学期の時間割の授業）
+| カラム名 | 型 | NULL | デフォルト | 説明 |
+|---|---|---|---|---|
+| id | BIGINT UNSIGNED | NO | AUTO_INCREMENT | 授業ID（PK） |
+| term_id | BIGINT UNSIGNED | NO | - | 学期ID（FK） |
+| weekday | TINYINT UNSIGNED | NO | - | 曜日（1＝月〜6＝土） |
+| time_slot_id | BIGINT UNSIGNED | NO | - | 授業枠ID（FK）。月〜金は平日、土は土曜の時間割の枠 |
+| seat | TINYINT UNSIGNED | NO | 1 | 席（1＝左、2＝右） |
+| user_id | BIGINT UNSIGNED | NO | - | 担当講師ID（FK） |
+| grade | ENUM（shifts と同じ） | YES | NULL | 生徒の学年 |
+| subject_id | BIGINT UNSIGNED | YES | NULL | 科目ID（FK） |
+| created_at / updated_at | TIMESTAMP | YES | NULL | 作成・更新日時 |
+
+- インデックス：PRIMARY KEY (id)、UNIQUE (term_id, weekday, user_id, time_slot_id, seat)、INDEX (term_id, weekday)
+- 外部キー：term_id → terms(id) ON DELETE CASCADE、time_slot_id・user_id は RESTRICT、subject_id は SET NULL
+- 「○月○日から適用」で、その日から学期末までのシフトを作り直す（日曜・休みの日・講習の日は対象外）。個別に変更したシフト（shifts.is_manual）と代講依頼があるシフトは残し、それとぶつかる授業は作らない
+
+### closed_days（休みの日）
+| カラム名 | 型 | NULL | デフォルト | 説明 |
+|---|---|---|---|---|
+| id | BIGINT UNSIGNED | NO | AUTO_INCREMENT | ID（PK） |
+| date | DATE | NO | - | 休みの日（UNIQUE） |
+| note | VARCHAR(50) | YES | NULL | メモ（例：年末年始） |
+| created_at / updated_at | TIMESTAMP | YES | NULL | 作成・更新日時 |
+
+- 休みの日はシフトを作らない。日曜は登録しなくても休み（講習のときだけ日ごとのシフト管理で入力）
 
 ### substitute_requests（代講依頼）
 | カラム名 | 型 | NULL | デフォルト | 説明 |

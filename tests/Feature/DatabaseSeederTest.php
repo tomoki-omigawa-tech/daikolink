@@ -7,6 +7,7 @@ use App\Enums\TimetablePattern;
 use App\Models\Shift;
 use App\Models\Subject;
 use App\Models\SubstituteRequest;
+use App\Models\Term;
 use App\Models\TimeSlot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,6 +25,8 @@ class DatabaseSeederTest extends TestCase
         $this->assertSame(25, TimeSlot::count());
         $this->assertSame(22, Subject::count());
         $this->assertTrue(User::where('email', 'teacher@example.com')->firstOrFail()->shifts()->exists());
+        $this->assertSame(1, Term::count());
+        $this->assertSame(0, Shift::whereNull('term_lesson_id')->count());
         $this->assertSame(5, SubstituteRequest::where('status', RequestStatus::Open)->count());
 
         foreach (User::teachers()->with('subjects')->get() as $teacher) {
