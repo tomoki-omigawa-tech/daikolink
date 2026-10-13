@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Staff;
 use App\Enums\Grade;
 use App\Enums\SlotKind;
 use App\Enums\SubjectStage;
-use App\Enums\TimetablePattern;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Staff\StoreTermRequest;
 use App\Http\Requests\Staff\UpdateTermCellRequest;
@@ -47,21 +46,13 @@ class TermController extends Controller
         $validated = $request->validate(['weekday' => ['nullable', 'integer', 'between:1,6']]);
         $weekday = (int) ($validated['weekday'] ?? (today()->isSunday() ? 1 : today()->dayOfWeekIso));
 
-        $pattern = $weekday === 6 ? TimetablePattern::Saturday : TimetablePattern::Weekday;
-        $slots = TimeSlot::ofPattern($pattern)->get();
-        $lessons = $term->lessons()->with(['timeSlot', 'subject'])->where('weekday', $weekday)->get();
-
-        // その曜日に授業がある講師を左に寄せる
-        $withLessons = $lessons->pluck('user_id')->flip();
-        $teachers = User::teachers()->active()->with('subjects')->get()
-            ->sortBy(fn (User $teacher) => ($withLessons->has($teacher->id) ? '0' : '1').$teacher->displayName())
-            ->values();
+        ['slots' => $slots, 'lessons' => $lessons, 'teachers' => $teachers, 'grid' => $grid] = TimetableGrid::forTermWeekday($term, $weekday);
 
         return view('staff.terms.timetable', [
             'term' => $term,
             'weekday' => $weekday,
             'teachers' => $teachers,
-            'grid' => TimetableGrid::build($teachers, $slots, $lessons),
+            'grid' => $grid,
             'editorConfig' => $this->editorConfig($term, $weekday, $teachers, $slots, $lessons),
         ]);
     }

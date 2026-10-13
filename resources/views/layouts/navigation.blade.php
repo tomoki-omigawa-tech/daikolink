@@ -15,6 +15,11 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    @unless (Auth::user()->isStaff())
+                        <x-nav-link :href="route('timetable')" :active="request()->routeIs('timetable')">
+                            時間割
+                        </x-nav-link>
+                    @endunless
                     @if (Auth::user()->isStaff())
                         <x-nav-link :href="route('staff.users.index')" :active="request()->routeIs('staff.users.*')">
                             アカウント管理
@@ -78,6 +83,11 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            @unless (Auth::user()->isStaff())
+                <x-responsive-nav-link :href="route('timetable')" :active="request()->routeIs('timetable')">
+                    時間割
+                </x-responsive-nav-link>
+            @endunless
             @if (Auth::user()->isStaff())
                 <x-responsive-nav-link :href="route('staff.users.index')" :active="request()->routeIs('staff.users.*')">
                     アカウント管理
