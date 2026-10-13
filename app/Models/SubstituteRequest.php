@@ -18,9 +18,6 @@ class SubstituteRequest extends Model
     protected $fillable = [
         'shift_id',
         'requester_id',
-        'student_count',
-        'subject',
-        'grade',
         'reason',
         'handover_note',
     ];
@@ -29,7 +26,6 @@ class SubstituteRequest extends Model
     {
         return [
             'status' => RequestStatus::class,
-            'student_count' => 'integer',
             'confirmed_at' => 'datetime',
             'staff_notified_at' => 'datetime',
         ];

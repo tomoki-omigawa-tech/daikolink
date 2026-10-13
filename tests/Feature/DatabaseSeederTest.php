@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\RequestStatus;
 use App\Enums\TimetablePattern;
 use App\Models\Shift;
+use App\Models\Subject;
 use App\Models\SubstituteRequest;
 use App\Models\TimeSlot;
 use App\Models\User;
@@ -20,14 +21,13 @@ class DatabaseSeederTest extends TestCase
         $this->seed();
 
         $this->assertSame(1, User::where('role', User::ROLE_STAFF)->count());
-        $this->assertSame(6, TimeSlot::where('pattern', TimetablePattern::Weekday)->count());
-        $this->assertSame(12, TimeSlot::where('pattern', TimetablePattern::Saturday)->count());
-        $this->assertSame(7, TimeSlot::where('pattern', TimetablePattern::Intensive)->count());
+        $this->assertSame(25, TimeSlot::count());
+        $this->assertSame(22, Subject::count());
         $this->assertTrue(User::where('email', 'teacher@example.com')->firstOrFail()->shifts()->exists());
         $this->assertSame(5, SubstituteRequest::where('status', RequestStatus::Open)->count());
 
         foreach (User::teachers()->with('subjects')->get() as $teacher) {
-            $this->assertGreaterThanOrEqual(2, $teacher->subjects->count());
+            $this->assertGreaterThanOrEqual(3, $teacher->subjects->count());
         }
     }
 
@@ -35,11 +35,26 @@ class DatabaseSeederTest extends TestCase
     {
         $this->seed();
 
-        $shifts = Shift::with('timeSlot')->get();
-
-        $this->assertGreaterThan(0, $shifts->count());
-        foreach ($shifts as $shift) {
+        foreach (Shift::with('timeSlot')->get() as $shift) {
             $this->assertSame(TimetablePattern::defaultFor($shift->date), $shift->timeSlot->pattern);
+        }
+    }
+
+    public function test_grade_and_subject_match_the_slot(): void
+    {
+        $this->seed();
+
+        foreach (Shift::with(['timeSlot', 'subject'])->get() as $shift) {
+            if ($shift->timeSlot->kind->isGroup()) {
+                continue;
+            }
+
+            $this->assertNotNull($shift->grade);
+            $this->assertNotNull($shift->subject);
+            // 小学生の枠には小学生、中高生の枠には中高生
+            $this->assertSame($shift->timeSlot->kind->isElementary(), $shift->grade->isElementary());
+            // 学年で選べる区分の科目
+            $this->assertContains($shift->subject->stage, $shift->grade->subjectStages());
         }
     }
 
@@ -51,7 +66,6 @@ class DatabaseSeederTest extends TestCase
             ->groupBy(fn (Shift $shift) => $shift->user_id.'|'.$shift->date->toDateString());
 
         foreach ($groups as $dayShifts) {
-            // 生徒数が最大になるのは、いずれかの授業の開始時刻
             foreach ($dayShifts as $shift) {
                 $load = $dayShifts
                     ->filter(fn (Shift $other) => $other->timeSlot->isInSessionAt($shift->timeSlot->start_time))
