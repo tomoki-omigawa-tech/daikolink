@@ -2,7 +2,7 @@
 
 ボード：[GitHub Projects「DaikoLink」](https://github.com/users/tomoki-omigawa-tech/projects/1)
 
-Issue：[techmeets-month2 の Issue](https://github.com/tomoki-omigawa-tech/techmeets-month2/issues)（Week 20 で作成。Week 20 のレビュー完了後にこのリポジトリへ移動予定）
+Issue：[Issues](https://github.com/tomoki-omigawa-tech/daikolink/issues)（Week 20 で techmeets-month2 に作成し、レビュー完了後にこのリポジトリへ移動）
 
 ## なぜ GitHub Projects にしたか
 - Issue・PR・コミットと紐づけられ、PR をマージすると自動で Done に移せる
