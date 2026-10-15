@@ -8,6 +8,7 @@
     ];
     $editable = $editable ?? false;
     $highlightUserId = $highlightUserId ?? null;
+    $showManual = $showManual ?? false;
 @endphp
 
 <div class="flex flex-wrap gap-4 text-xs text-gray-600">
@@ -15,6 +16,9 @@
     <span><span class="inline-block w-3 h-3 align-middle bg-amber-50 border border-gray-300"></span> 小学生（上＝1/2、下＝2/2）</span>
     <span><span class="inline-block w-3 h-3 align-middle bg-violet-50 border border-gray-300"></span> 小学生集団</span>
     <span>⚠ 担当できる科目に入っていない</span>
+    @if ($showManual)
+        <span><span class="text-indigo-500">●</span> 時間割から個別に変更</span>
+    @endif
 </div>
 
 <div class="bg-white shadow-sm sm:rounded-lg overflow-x-auto" x-ref="scroller">
@@ -52,6 +56,9 @@
                                 @if ($editable) @click.stop="edit($event, {{ $cell['teacher_id'] }}, {{ $cell['period'] }}, {{ $cell['seat'] }})" @endif
                                 class="{{ $editable ? 'cursor-pointer hover:ring-2 hover:ring-inset hover:ring-indigo-400' : '' }} border border-gray-200 px-1 {{ count($period['rows']) === 2 ? 'h-12' : 'h-24' }} w-24 min-w-[6rem] text-center align-middle whitespace-nowrap {{ $cell['lesson'] ? $cellClass[$cell['type']] : 'bg-white' }}">
                                 {{ $cell['label'] }}
+                                @if ($cell['lesson'] instanceof \App\Models\Shift && $cell['lesson']->is_manual)
+                                    <span class="text-indigo-500" title="時間割から個別に変更">●</span>
+                                @endif
                                 @if ($cell['warn'])
                                     <span class="text-amber-600" title="担当できる科目に入っていません">⚠</span>
                                 @endif

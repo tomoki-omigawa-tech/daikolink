@@ -7,7 +7,6 @@ use App\Enums\SlotKind;
 use App\Enums\TimetablePattern;
 use App\Models\ClosedDay;
 use App\Models\Shift;
-use App\Models\Subject;
 use App\Models\Term;
 use App\Models\TermLesson;
 use App\Models\TimeSlot;
@@ -29,22 +28,23 @@ class TermTimetableService
      *
      * @return array{created: int, deleted: int, skipped: int}
      */
-    public function apply(Term $term, CarbonInterface $from, User $editor): array
+    public function apply(Term $term, CarbonInterface $from, User $editor, ?CarbonInterface $until = null): array
     {
         $start = $from->greaterThan($term->start_date) ? Carbon::parse($from->toDateString()) : $term->start_date->copy();
         $result = ['created' => 0, 'deleted' => 0, 'skipped' => 0];
+        $end = $until !== null && $until->lessThan($term->end_date) ? Carbon::parse($until->toDateString()) : $term->end_date->copy();
 
-        if ($start->greaterThan($term->end_date)) {
+        if ($start->greaterThan($end)) {
             return $result;
         }
 
         $lessonsByWeekday = $term->lessons()->with('timeSlot')->get()->groupBy('weekday');
-        $closed = ClosedDay::whereBetween('date', [$start->toDateString(), $term->end_date->toDateString()])
+        $closed = ClosedDay::whereBetween('date', [$start->toDateString(), $end->toDateString()])
             ->get()
             ->mapWithKeys(fn (ClosedDay $day) => [$day->date->toDateString() => true]);
 
-        DB::transaction(function () use ($start, $term, $lessonsByWeekday, $closed, $editor, &$result) {
-            foreach (CarbonPeriod::create($start, $term->end_date) as $date) {
+        DB::transaction(function () use ($start, $end, $lessonsByWeekday, $closed, $editor, &$result) {
+            foreach (CarbonPeriod::create($start, $end) as $date) {
                 $day = $date->toDateString();
                 if ($date->isSunday() || $closed->has($day)) {
                     continue;
@@ -140,33 +140,7 @@ class TermTimetableService
             throw ValidationException::withMessages(['cell' => 'この曜日にない限です。']);
         }
 
-        $errors = [];
-        $new = [];
-
-        if ($mode === 'group') {
-            $group = $slots->get(SlotKind::ElementaryGroup->value);
-            $group === null
-                ? $errors[] = 'この限には小学生集団がありません。'
-                : $new[] = [$group, 1, null, null];
-        } elseif ($mode === 'secondary') {
-            $new[] = $this->lessonFrom($slots->get(SlotKind::Secondary->value), $seat, (array) ($data['secondary'] ?? []), false, $errors, '中高生');
-        } elseif ($mode === 'elementary') {
-            foreach (['first' => SlotKind::ElementaryFirst, 'second' => SlotKind::ElementarySecond] as $key => $kind) {
-                $values = (array) ($data[$key] ?? []);
-                if (($values['grade'] ?? '') === '' || ($values['grade'] ?? null) === null) {
-                    continue;
-                }
-                $new[] = $this->lessonFrom($slots->get($kind->value), $seat, $values, true, $errors, $kind->label());
-            }
-            if ($new === [] && $errors === []) {
-                $errors[] = '1/2か2/2の学年を選んでください。';
-            }
-        }
-
-        $new = array_values(array_filter($new));
-        if ($errors !== []) {
-            throw ValidationException::withMessages(['cell' => $errors]);
-        }
+        $new = CellInput::parse($slots, $seat, $mode, $data);
 
         DB::transaction(function () use ($term, $weekday, $teacher, $slots, $seat, $mode, $new) {
             $groupSlotId = $slots->get(SlotKind::ElementaryGroup->value)?->id;
@@ -215,50 +189,6 @@ class TermTimetableService
             }
         });
 
-        $warnings = [];
-        foreach ($new as [, , , $subject]) {
-            if ($subject !== null && ! $teacher->subjects->contains('id', $subject->id)) {
-                $warnings[] = "{$subject->stage->label()}の{$subject->name}は、{$teacher->displayName()}の担当できる科目に入っていません。";
-            }
-        }
-
-        return $warnings;
-    }
-
-    /**
-     * 入力から授業を作る（学年と授業の種類、科目の区分をチェック）
-     *
-     * @param  array<string, mixed>  $values
-     * @param  list<string>  $errors
-     * @return array{0: TimeSlot, 1: int, 2: Grade, 3: Subject}|null
-     */
-    private function lessonFrom(?TimeSlot $slot, int $seat, array $values, bool $elementary, array &$errors, string $label): ?array
-    {
-        if ($slot === null) {
-            $errors[] = "この限には{$label}の授業がありません。";
-
-            return null;
-        }
-
-        $grade = Grade::tryFrom((string) ($values['grade'] ?? ''));
-        if ($grade === null) {
-            $errors[] = "{$label}の学年を選んでください。";
-
-            return null;
-        }
-        if ($grade->isElementary() !== $elementary) {
-            $errors[] = $elementary ? "{$label}には小学生の学年を選んでください。" : "{$label}には中学生か高校生の学年を選んでください。";
-
-            return null;
-        }
-
-        $subject = Subject::active()->find($values['subject_id'] ?? null);
-        if (! $subject instanceof Subject || ! in_array($subject->stage, $grade->subjectStages(), true)) {
-            $errors[] = "{$label}の科目を、{$grade->label()}で選べる科目から選んでください。";
-
-            return null;
-        }
-
-        return [$slot, $seat, $grade, $subject];
+        return CellInput::warnings($teacher, $new);
     }
 }
