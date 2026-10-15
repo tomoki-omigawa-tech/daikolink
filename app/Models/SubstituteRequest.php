@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property RequestStatus $status
+ * @property-read Shift $shift
+ * @property-read User $requester
+ */
 class SubstituteRequest extends Model
 {
     use HasFactory;

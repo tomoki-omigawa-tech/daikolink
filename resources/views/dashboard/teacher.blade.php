@@ -17,6 +17,14 @@
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
+            @if (session('status'))
+                <div class="rounded-md bg-green-50 p-4 text-sm text-green-800">{{ session('status') }}</div>
+            @endif
+            <p class="text-sm text-gray-600">自分の授業のマスをクリックすると、代講を依頼できます（オレンジの枠は募集中の依頼）。</p>
+            @if (session('status'))
+                <div class="rounded-md bg-green-50 p-4 text-sm text-green-800">{{ session('status') }}</div>
+            @endif
+            <p class="text-sm text-gray-600">自分の授業のマスをクリックすると、代講を依頼できます（オレンジの枠は募集中の依頼）。</p>
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <nav class="flex gap-1" aria-label="週">
                     @foreach ([0 => '今週', 1 => '来週'] as $value => $label)
@@ -79,7 +87,19 @@
                                             @if ($cell['time']) title="{{ $cell['time'] }}" @endif
                                             @if ($cell['requested']) data-request="active" @endif
                                             class="border border-gray-200 px-1 {{ count($row['cells']) === 2 ? 'h-12' : 'h-24' }} w-24 min-w-[6rem] text-center align-middle whitespace-nowrap {{ $cell['label'] !== '' ? $cellClass[$cell['type']] : ($cell['type'] === 'none' ? 'bg-gray-100' : 'bg-white') }} {{ $cell['requested'] ? 'ring-2 ring-inset ring-amber-400' : '' }}">
-                                            {{ $cell['label'] }}
+                                            @if ($cell['request_id'])
+                                                <a href="{{ route('requests.show', $cell['request_id']) }}" class="block hover:underline" title="代講依頼を見る">{{ $cell['label'] }}</a>
+                                            @elseif ($cell['shift_id'] && $cell['future'])
+                                                <a href="{{ route('requests.create', ['date' => $cell['date'], 'shift' => $cell['shift_id']]) }}" class="block hover:underline" title="代講を依頼する">{{ $cell['label'] }}</a>
+                                            @else
+                                                @if ($cell['request_id'])
+                                                <a href="{{ route('requests.show', $cell['request_id']) }}" class="block hover:underline" title="代講依頼を見る">{{ $cell['label'] }}</a>
+                                            @elseif ($cell['shift_id'] && $cell['future'])
+                                                <a href="{{ route('requests.create', ['date' => $cell['date'], 'shift' => $cell['shift_id']]) }}" class="block hover:underline" title="代講を依頼する">{{ $cell['label'] }}</a>
+                                            @else
+                                                {{ $cell['label'] }}
+                                            @endif
+                                            @endif
                                             @if ($cell['manual'])
                                                 <span class="text-indigo-500" title="時間割から個別に変更">●</span>
                                             @endif
