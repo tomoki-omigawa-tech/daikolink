@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Staff\DailyShiftController;
 use App\Http\Controllers\Staff\TermController;
 use App\Http\Controllers\Staff\UserController as StaffUserController;
 use App\Http\Controllers\TimetableController;
@@ -28,6 +29,11 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     Route::get('terms/{term}/timetable', [TermController::class, 'timetable'])->name('terms.timetable');
     Route::put('terms/{term}/cell', [TermController::class, 'updateCell'])->name('terms.cell');
     Route::post('terms/{term}/apply', [TermController::class, 'apply'])->name('terms.apply');
+    Route::get('shifts', [DailyShiftController::class, 'index'])->name('shifts.index');
+    Route::put('shifts/cell', [DailyShiftController::class, 'updateCell'])->name('shifts.cell');
+    Route::post('shifts/close', [DailyShiftController::class, 'close'])->name('shifts.close');
+    Route::delete('shifts/close', [DailyShiftController::class, 'reopen'])->name('shifts.reopen');
+    Route::post('shifts/clear', [DailyShiftController::class, 'clear'])->name('shifts.clear');
 });
 
 require __DIR__.'/auth.php';

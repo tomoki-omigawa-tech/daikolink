@@ -27,6 +27,9 @@
                         <x-nav-link :href="route('staff.terms.index')" :active="request()->routeIs('staff.terms.*')">
                             時間割
                         </x-nav-link>
+                        <x-nav-link :href="route('staff.shifts.index')" :active="request()->routeIs('staff.shifts.*')">
+                            シフト管理
+                        </x-nav-link>
                     @endif
                 </div>
             </div>
@@ -94,6 +97,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('staff.terms.index')" :active="request()->routeIs('staff.terms.*')">
                     時間割
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('staff.shifts.index')" :active="request()->routeIs('staff.shifts.*')">
+                    シフト管理
                 </x-responsive-nav-link>
             @endif
         </div>
