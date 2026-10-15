@@ -44,7 +44,7 @@
         <tbody>
             @foreach ($grid as $period)
                 @foreach ($period['rows'] as $rowIndex => $cells)
-                    <tr>
+                    <tr class="{{ count($period['rows']) === 2 ? 'h-12' : 'h-24' }}">
                         @if ($rowIndex === 0)
                             <th rowspan="{{ count($period['rows']) }}" class="sticky left-0 z-10 bg-gray-50 border border-gray-200 px-2 py-2 text-left align-top">
                                 <div class="text-sm font-bold text-gray-900">{{ $period['label'] }}</div>
