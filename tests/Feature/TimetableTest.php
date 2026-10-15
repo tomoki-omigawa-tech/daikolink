@@ -62,7 +62,9 @@ class TimetableTest extends TestCase
             ->assertSee('中2 数学')
             ->assertSeeInOrder(['とも', 'あなた', 'ひょー'])
             // 講師の画面ではマスをクリックして編集できない
-            ->assertDontSee('@click.stop', false);
+            ->assertDontSee('edit($event', false)
+            // 講師名をクリックするとプロフィールが開く
+            ->assertSee('show-profile', false);
     }
 
     public function test_guest_is_redirected_to_login(): void

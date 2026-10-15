@@ -10,9 +10,15 @@
                     @csrf
 
                     <div>
-                        <x-input-label for="name" value="氏名" />
+                        <x-input-label for="name" value="氏名（姓と名の間にスペース）" />
                         <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name')" required autofocus maxlength="50" />
                         <x-input-error :messages="$errors->get('name')" class="mt-2" />
+                    </div>
+
+                    <div>
+                        <x-input-label for="nickname" value="ニックネーム（任意・表で大きく表示されます）" />
+                        <x-text-input id="nickname" name="nickname" type="text" class="mt-1 block w-full" :value="old('nickname')" maxlength="20" />
+                        <x-input-error :messages="$errors->get('nickname')" class="mt-2" />
                     </div>
 
                     <div>
