@@ -6,6 +6,7 @@ use App\Http\Controllers\Staff\DailyShiftController;
 use App\Http\Controllers\Staff\SubjectController;
 use App\Http\Controllers\Staff\TermController;
 use App\Http\Controllers\Staff\UserController as StaffUserController;
+use App\Http\Controllers\SubstituteRequestController;
 use App\Http\Controllers\TimetableController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,10 @@ Route::get('/timetable', [TimetableController::class, 'show'])
     ->name('timetable');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/requests', [SubstituteRequestController::class, 'index'])->name('requests.index');
+    Route::get('/requests/create', [SubstituteRequestController::class, 'create'])->name('requests.create');
+    Route::post('/requests', [SubstituteRequestController::class, 'store'])->name('requests.store');
+    Route::get('/requests/{substituteRequest}', [SubstituteRequestController::class, 'show'])->name('requests.show');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/subjects', [ProfileController::class, 'updateSubjects'])->name('profile.subjects');

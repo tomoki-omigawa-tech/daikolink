@@ -125,6 +125,10 @@ class MyWeekGrid
             'time' => $shift?->timeSlot->timeRange() ?? '',
             'manual' => $shift !== null && $shift->is_manual,
             'requested' => $shift !== null && $shift->activeRequests->isNotEmpty(),
+            'shift_id' => $shift?->id,
+            'date' => $shift?->date->toDateString(),
+            'future' => $shift !== null && $shift->startsAt()->isFuture(),
+            'request_id' => $shift?->activeRequests->first()?->id,
         ];
     }
 }

@@ -82,6 +82,8 @@ class Shift extends Model
 
     /**
      * 募集中または応募ありの依頼
+     *
+     * @return HasMany<SubstituteRequest, $this>
      */
     public function activeRequests(): HasMany
     {
