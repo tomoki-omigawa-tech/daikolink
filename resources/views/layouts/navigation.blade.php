@@ -19,6 +19,9 @@
                         <x-nav-link :href="route('timetable')" :active="request()->routeIs('timetable')">
                             時間割
                         </x-nav-link>
+                        <x-nav-link :href="route('shifts.board')" :active="request()->routeIs('shifts.board')">
+                            シフト表
+                        </x-nav-link>
                         <x-nav-link :href="route('requests.index')" :active="request()->routeIs('requests.*')">
                             代講募集
                         </x-nav-link>
@@ -97,6 +100,9 @@
             @unless (Auth::user()->isStaff())
                 <x-responsive-nav-link :href="route('timetable')" :active="request()->routeIs('timetable')">
                     時間割
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('shifts.board')" :active="request()->routeIs('shifts.board')">
+                    シフト表
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('requests.index')" :active="request()->routeIs('requests.*')">
                     代講募集

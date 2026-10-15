@@ -9,6 +9,7 @@
     $editable = $editable ?? false;
     $highlightUserId = $highlightUserId ?? null;
     $showManual = $showManual ?? false;
+    $showRequests = $showRequests ?? false;
 @endphp
 
 <div class="flex flex-wrap gap-4 text-xs text-gray-600">
@@ -16,6 +17,9 @@
     <span><span class="inline-block w-3 h-3 align-middle bg-amber-50 border border-gray-300"></span> 小学生（上＝1/2、下＝2/2）</span>
     <span><span class="inline-block w-3 h-3 align-middle bg-violet-50 border border-gray-300"></span> 小学生集団</span>
     <span>⚠ 担当できる科目に入っていない</span>
+    @if ($showRequests)
+        <span><span class="inline-block w-3 h-3 align-middle ring-2 ring-inset ring-amber-400"></span> 代講を募集中</span>
+    @endif
     @if ($showManual)
         <span><span class="text-indigo-500">●</span> 時間割から個別に変更</span>
     @endif
@@ -54,8 +58,12 @@
                         @foreach ($cells as $cell)
                             <td rowspan="{{ $cell['rowspan'] }}" colspan="{{ $cell['colspan'] }}"
                                 @if ($editable) @click.stop="edit($event, {{ $cell['teacher_id'] }}, {{ $cell['period'] }}, {{ $cell['seat'] }})" @endif
-                                class="{{ $editable ? 'cursor-pointer hover:ring-2 hover:ring-inset hover:ring-indigo-400' : '' }} border border-gray-200 px-1 {{ count($period['rows']) === 2 ? 'h-12' : 'h-24' }} w-24 min-w-[6rem] text-center align-middle whitespace-nowrap {{ $cell['lesson'] ? $cellClass[$cell['type']] : 'bg-white' }}">
-                                {{ $cell['label'] }}
+                                class="{{ $editable ? 'cursor-pointer hover:ring-2 hover:ring-inset hover:ring-indigo-400' : '' }} border border-gray-200 px-1 {{ count($period['rows']) === 2 ? 'h-12' : 'h-24' }} w-24 min-w-[6rem] text-center align-middle whitespace-nowrap {{ $cell['lesson'] ? $cellClass[$cell['type']] : 'bg-white' }} {{ ($cell['request_id'] ?? null) ? 'ring-2 ring-inset ring-amber-400' : '' }}">
+                                @if (! $editable && ($cell['request_id'] ?? null))
+                                    <a href="{{ route('requests.show', $cell['request_id']) }}" class="hover:underline" title="代講依頼を見る">{{ $cell['label'] }}</a>
+                                @else
+                                    {{ $cell['label'] }}
+                                @endif
                                 @if ($cell['lesson'] instanceof \App\Models\Shift && $cell['lesson']->is_manual)
                                     <span class="text-indigo-500" title="時間割から個別に変更">●</span>
                                 @endif
@@ -70,4 +78,4 @@
         </tbody>
     </table>
 </div>
-@include('partials.teacher-profile-modal', ['profiles' => \App\Support\TeacherProfiles::make($teachers)])
+@include('partials.teacher-profile-modal', ['profiles' => \App\Support\TeacherProfiles::make($profileTeachers ?? $teachers)])

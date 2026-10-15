@@ -38,7 +38,7 @@ class DailyShiftController extends Controller
             : $this->service->patternFor($date);
 
         $slots = $pattern !== null ? TimeSlot::ofPattern($pattern)->get() : collect();
-        $shifts = Shift::with(['timeSlot', 'subject', 'updatedBy'])->where('date', $date->toDateString())->get();
+        $shifts = Shift::with(['timeSlot', 'subject', 'updatedBy', 'activeRequests'])->where('date', $date->toDateString())->get();
         $visible = $shifts->filter(fn (Shift $shift) => $shift->timeSlot->pattern === $pattern)->values();
 
         // その日にシフトがある講師を左に寄せる

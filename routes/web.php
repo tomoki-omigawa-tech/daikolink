@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ShiftBoardController;
 use App\Http\Controllers\Staff\DailyShiftController;
 use App\Http\Controllers\Staff\SubjectController;
 use App\Http\Controllers\Staff\TermController;
@@ -17,6 +18,10 @@ Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verif
 Route::get('/timetable', [TimetableController::class, 'show'])
     ->middleware(['auth', 'verified'])
     ->name('timetable');
+
+Route::get('/shifts', [ShiftBoardController::class, 'show'])
+    ->middleware(['auth', 'verified'])
+    ->name('shifts.board');
 
 Route::middleware('auth')->group(function () {
     Route::get('/requests', [SubstituteRequestController::class, 'index'])->name('requests.index');

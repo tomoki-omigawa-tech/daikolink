@@ -88,7 +88,7 @@
                     </form>
                 </div>
 
-                @include('partials.timetable-grid', ['editable' => true, 'showManual' => true])
+                @include('partials.timetable-grid', ['editable' => true, 'showManual' => true, 'showRequests' => true])
             @endif
         </div>
 
