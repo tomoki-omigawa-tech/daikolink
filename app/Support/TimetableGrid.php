@@ -93,6 +93,7 @@ class TimetableGrid
             'lesson' => $lesson,
             'label' => $lesson?->lessonLabel() ?? '',
             'warn' => $warn,
+            'request_id' => $lesson instanceof Shift && $lesson->relationLoaded('activeRequests') ? $lesson->activeRequests->first()?->id : null,
             'rowspan' => $rowspan,
             'colspan' => $colspan,
         ];
