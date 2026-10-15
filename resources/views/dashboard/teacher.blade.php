@@ -21,10 +21,6 @@
                 <div class="rounded-md bg-green-50 p-4 text-sm text-green-800">{{ session('status') }}</div>
             @endif
             <p class="text-sm text-gray-600">自分の授業のマスをクリックすると、代講を依頼できます（オレンジの枠は募集中の依頼）。</p>
-            @if (session('status'))
-                <div class="rounded-md bg-green-50 p-4 text-sm text-green-800">{{ session('status') }}</div>
-            @endif
-            <p class="text-sm text-gray-600">自分の授業のマスをクリックすると、代講を依頼できます（オレンジの枠は募集中の依頼）。</p>
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <nav class="flex gap-1" aria-label="週">
                     @foreach ([0 => '今週', 1 => '来週'] as $value => $label)
