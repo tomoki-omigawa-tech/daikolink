@@ -29,7 +29,7 @@
                 @foreach ($teachers as $teacher)
                     <th colspan="2" class="border border-gray-200 px-2 py-1 min-w-[12rem] {{ $teacher->id === $highlightUserId ? 'bg-indigo-100' : 'bg-gray-50' }}">
                         <div class="text-sm font-bold text-gray-900">
-                            {{ $teacher->displayName() }}
+                            <button type="button" x-data @click.stop="$dispatch('show-profile', {{ $teacher->id }})" class="hover:underline" title="プロフィールを見る">{{ $teacher->displayName() }}</button>
                             @if ($teacher->id === $highlightUserId)
                                 <span class="ml-1 rounded bg-indigo-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">あなた</span>
                             @endif
@@ -70,3 +70,4 @@
         </tbody>
     </table>
 </div>
+@include('partials.teacher-profile-modal', ['profiles' => \App\Support\TeacherProfiles::make($teachers)])

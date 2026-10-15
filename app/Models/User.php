@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -110,5 +111,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function displayName(): string
     {
         return $this->nickname ?: $this->surnameLabel();
+    }
+
+    /**
+     * プロフィール画像のURL（未設定なら null）
+     */
+    public function avatarUrl(): ?string
+    {
+        return $this->avatar ? Storage::disk('public')->url($this->avatar) : null;
     }
 }

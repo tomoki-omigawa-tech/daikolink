@@ -29,7 +29,7 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request): RedirectResponse
     {
-        $user = new User($request->safe()->only(['name', 'email', 'password']));
+        $user = new User($request->safe()->only(['name', 'nickname', 'email', 'password']));
         $user->role = $request->validated('role');
         $user->save();
         event(new Registered($user));
