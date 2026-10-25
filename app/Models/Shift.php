@@ -75,6 +75,9 @@ class Shift extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    /**
+     * @return HasMany<SubstituteRequest, $this>
+     */
     public function substituteRequests(): HasMany
     {
         return $this->hasMany(SubstituteRequest::class);

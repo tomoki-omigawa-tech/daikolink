@@ -13,10 +13,11 @@
                         {{ $isClosedToday ? '休み' : $todayShifts.' 件' }}
                     </p>
                 </div>
-                <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                <a href="{{ route('staff.requests.index') }}" class="block bg-white shadow-sm sm:rounded-lg p-6 hover:ring-2 hover:ring-indigo-400">
                     <p class="text-sm text-gray-500">まだ決まっていない代講依頼</p>
                     <p class="mt-1 text-3xl font-bold {{ $activeRequests > 0 ? 'text-amber-600' : 'text-gray-900' }}">{{ $activeRequests }} 件</p>
-                </div>
+                    <p class="mt-1 text-sm text-indigo-600">状況を見る →</p>
+                </a>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
