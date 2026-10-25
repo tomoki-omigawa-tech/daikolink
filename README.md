@@ -2,9 +2,19 @@
 
 ![Lint](https://github.com/tomoki-omigawa-tech/daikolink/actions/workflows/lint.yml/badge.svg)
 ![Test](https://github.com/tomoki-omigawa-tech/daikolink/actions/workflows/test.yml/badge.svg)
+![Deploy](https://github.com/tomoki-omigawa-tech/daikolink/actions/workflows/deploy.yml/badge.svg)
 
 個別指導塾の講師が **全講師のシフトを見て、サイト上で代講の「依頼 → 応募 → 確定」までを講師どうしで完結できる** Webアプリです。
-techmeets Week 22〜24 の総合プロジェクトとして開発しています。
+techmeets Week 22〜24 の総合プロジェクトとして開発しました。
+
+**公開URL：** https://daikolink.tomoki-omigawa.com
+
+| ロール | メールアドレス | パスワード |
+|---|---|---|
+| スタッフ | staff@example.com | password |
+| 講師 | teacher@example.com | password |
+
+※ 架空のデモデータです。メールは実際には送信せず、サーバーのログに書き出す設定にしています。
 
 ## 解決したい課題
 
@@ -14,7 +24,7 @@ techmeets Week 22〜24 の総合プロジェクトとして開発しています
 - 声かけ・LINE・電話は1人ずつなので時間がかかる
 - やり取りが散らばり、依頼状況や履歴が残らない
 
-## 主な機能（Week 22 時点）
+## 主な機能
 
 | 機能 | 内容 |
 |---|---|
@@ -23,9 +33,14 @@ techmeets Week 22〜24 の総合プロジェクトとして開発しています
 | シフト管理（スタッフ） | 日ごとのシフトの変更・休みの日・講習の時間割への切り替え。個別の変更は時間割を反映し直しても残る |
 | マイシフト（講師） | 今週・来週の自分のシフトを1週間の表で表示 |
 | シフト表（講師） | その日の全員のシフトと、限ごとの「空いている講師」「席が片方空いている講師」 |
-| 代講依頼 | マイシフトから授業を選んで依頼（部分的な代講・複数まとめても可）、募集中の一覧と詳細 |
-| プロフィール | プロフィール画像・ニックネーム・担当できる科目。講師名クリックで表示 |
+| 代講依頼 | マイシフトから授業を選んで依頼（部分的な代講・複数まとめても可）、募集中の一覧と詳細、絞り込み |
+| 応募・確定（Week 23） | 募集中の依頼に応募し、依頼者が確定するとシフトに反映。自分の依頼以外は編集・取り消しできない（Policy） |
+| メール通知（Week 23） | 代講の確定を当事者に通知（引き継ぎメモは本文に載せず、リンクのみ） |
+| 依頼状況の確認（スタッフ） | すべての代講依頼の状況を一覧で確認 |
+| プロフィール | プロフィール画像のアップロード・ニックネーム・担当できる科目。講師名クリックで表示 |
 | 科目管理（スタッフ） | 小学・中学・高校・その他（DOJO・キュレオ）の区分つき。追加・名前の変更・非表示 |
+
+一部の操作は、ページを再読み込みせずに反映されます（Ajax）。PC とスマホの両方の画面幅に対応しています。
 
 実際の運用（出勤簿システムの画面と紙のシフト表）に合わせて、次のように作っています。
 
@@ -48,15 +63,43 @@ techmeets Week 22〜24 の総合プロジェクトとして開発しています
 |---|---|---|
 | ![代講依頼の作成](docs/screenshots/05-request-create.png) | ![募集中の代講](docs/screenshots/06-request-list.png) | ![代講依頼の詳細](docs/screenshots/07-request-detail.png) |
 
+| 募集中の一覧（Week 23） | 応募 | 確定 | 依頼状況（スタッフ） |
+|---|---|---|---|
+| ![一覧](docs/screenshots/week23/1-list-pc.png) | ![応募](docs/screenshots/week23/2-apply-pc.png) | ![確定](docs/screenshots/week23/3-confirmed-pc.png) | ![スタッフ](docs/screenshots/week23/4-staff-pc.png) |
+
+| スマホ：一覧 | スマホ：応募 | スマホ：確定 | スマホ：スタッフ |
+|---|---|---|---|
+| ![一覧](docs/screenshots/week23/1-list-sp.png) | ![応募](docs/screenshots/week23/2-apply-sp.png) | ![確定](docs/screenshots/week23/3-confirmed-sp.png) | ![スタッフ](docs/screenshots/week23/4-staff-sp.png) |
+
 | アカウント発行（スタッフ） | プロフィール |
 |---|---|
 | ![アカウント発行](docs/screenshots/01-account-create.png) | ![プロフィール](docs/screenshots/09-profile.png) |
 
 ## 技術スタック
 
-PHP 8.3 / Laravel 12 / MySQL 8.0 / Blade + Tailwind CSS + Alpine.js / Docker（nginx・PHP-FPM・MySQL）/ GitHub Actions（Pint・PHPStan level 5・PHPUnit）
+| 分類 | 技術 |
+|---|---|
+| バックエンド | PHP 8.3 / Laravel 12 / MySQL 8.0 |
+| フロントエンド | Blade / Tailwind CSS / Alpine.js |
+| 開発環境 | Docker（nginx・PHP-FPM・MySQL・phpMyAdmin） |
+| 本番環境 | AWS（EC2 + RDS for MySQL）/ Docker / Nginx（リバースプロキシ）/ Let's Encrypt |
+| CI/CD | GitHub Actions（Pint・PHPStan level 5・PHPUnit、main へのマージで自動デプロイ） |
 
 選定理由は [技術選定資料](docs/tech-stack.md) を参照。
+
+## 本番環境の構成
+
+```
+ブラウザ ──HTTPS──▶ EC2（Ubuntu）
+                    ├ Nginx（ホスト）… daikolink.tomoki-omigawa.com を 127.0.0.1:8001 へ転送、Let's Encrypt で HTTPS
+                    └ Docker（docker-compose.prod.yml）
+                        ├ web（nginx:alpine）
+                        └ app（PHP-FPM 8.3）──▶ RDS for MySQL（EC2 からのみ接続可）
+```
+
+- main にマージすると、GitHub Actions（`.github/workflows/deploy.yml`）が SSH で EC2 に入り、`git pull` → `composer install --no-dev` → `npm run build` → `migrate --force` → 設定のキャッシュまでを自動で実行します
+- アップロード画像は EC2 のディスク（`storage/app/public`）に保存しています
+- 同じ EC2 で別のアプリも動かしているため、ポート（8001）とサブドメインで分けています
 
 ## ローカルでの起動
 
@@ -72,12 +115,7 @@ docker compose exec app php artisan storage:link
 npm install && npm run build
 ```
 
-http://localhost:8100 を開き、架空のアカウントでログインできます（パスワードはすべて `password`）。
-
-| ロール | メールアドレス |
-|---|---|
-| スタッフ | staff@example.com |
-| 講師 | teacher@example.com |
+http://localhost:8100 を開き、上のデモ用アカウントでログインできます。
 
 ## テスト
 
@@ -87,7 +125,7 @@ docker compose exec app php artisan test
 docker compose exec app vendor/bin/phpstan analyse
 ```
 
-Feature テスト・Unit テスト（109件）で、権限・入力チェック・同じ時刻の生徒数・時間割の反映（個別の変更を残す）・代講依頼の二重作成の防止などを確認しています。PR ごとに GitHub Actions で Lint と Test を実行しています。
+Feature テスト・Unit テスト（126件）で、権限・入力チェック・同じ時刻の生徒数・時間割の反映（個別の変更を残す）・代講依頼の二重作成の防止・応募と確定などを確認しています。PR ごとに GitHub Actions で Lint と Test を実行しています。
 
 ## ドキュメント
 
@@ -105,8 +143,16 @@ Feature テスト・Unit テスト（109件）で、権限・入力チェック�
 | スプリント | 期間 | ゴール | 状況 |
 |---|---|---|---|
 | Sprint 1 | Week 22 | ログインして全講師のシフトを確認し、自分のコマから代講依頼を出せる | ✅ 完了 |
-| Sprint 2 | Week 23 | 依頼 → 応募 → 確定 → シフト反映 → メール通知までが一通りつながる | |
-| Sprint 3 | Week 24 | テスト（カバレッジ70%）と CI を整え、本番 URL で MVP が動く | |
+| Sprint 2 | Week 23 | 依頼 → 応募 → 確定 → シフト反映 → メール通知までが一通りつながる | ✅ 完了 |
+| Sprint 3 | Week 24 | テスト（カバレッジ70%）と CI を整え、本番 URL で MVP が動く | ✅ 本番公開 |
+
+## 今後の拡張予定
+
+- [ ] 未確定の代講依頼を、授業当日の正午にスタッフへ通知（Laravel のスケジューラーを本番で常駐させる）
+- [ ] 実際のメール送信（Amazon SES など）
+- [ ] アップロード画像の S3 保存
+- [ ] LINE への通知
+- [ ] 実際の塾での試験運用と、KPI（代講者が決まるまでの時間）の計測
 
 ## 作成者
 

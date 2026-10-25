@@ -1,0 +1,32 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: サーバーにSSH接続してデプロイ
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          command_timeout: 30m
+          script: |
+            set -e
+            cd /home/ubuntu/daikolink
+            git pull origin main
+            DC="docker compose -f docker-compose.prod.yml"
+            $DC up -d --build
+            $DC exec -T app composer install --no-dev --optimize-autoloader --no-interaction
+            docker run --rm -v "$(pwd)":/app -w /app node:20-alpine sh -c "npm ci && npm run build"
+            $DC exec -T app chown -R www-data:www-data storage bootstrap/cache
+            $DC exec -T app php artisan migrate --force
+            $DC exec -T app php artisan storage:link || true
+            $DC exec -T app php artisan config:cache
+            $DC exec -T app php artisan route:cache
+            $DC exec -T app php artisan view:cache

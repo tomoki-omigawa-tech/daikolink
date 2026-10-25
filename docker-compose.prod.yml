@@ -1,0 +1,28 @@
+# 本番用（EC2）: DBはRDSを使うのでここには置かない
+name: daikolink-prod
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  app:
+    build: ./docker/php
+    volumes:
+      - .:/var/www/html
+    restart: unless-stopped
+    logging: *default-logging
+
+  web:
+    image: nginx:alpine
+    ports:
+      - "127.0.0.1:8001:80"  # month2(8000)と分ける。外からはホストのNginx経由
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    restart: unless-stopped
+    logging: *default-logging
