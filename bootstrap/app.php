@@ -12,6 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*'); // ホストのNginx(HTTPS)の裏で動くため
         $middleware->alias([
             'staff' => EnsureUserIsStaff::class,
         ]);

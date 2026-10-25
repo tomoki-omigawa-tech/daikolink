@@ -1,0 +1,15 @@
+.git
+node_modules
+vendor
+.env
+.env.*
+public/hot
+public/build
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+.vscode
+.idea
+deploy_key
+deploy_key.pub
