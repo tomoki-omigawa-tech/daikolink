@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShiftBoardController;
 use App\Http\Controllers\Staff\DailyShiftController;
 use App\Http\Controllers\Staff\SubjectController;
+use App\Http\Controllers\Staff\SubstituteRequestController as StaffSubstituteRequestController;
 use App\Http\Controllers\Staff\TermController;
 use App\Http\Controllers\Staff\UserController as StaffUserController;
 use App\Http\Controllers\SubstituteRequestController;
@@ -27,7 +28,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/requests', [SubstituteRequestController::class, 'index'])->name('requests.index');
     Route::get('/requests/create', [SubstituteRequestController::class, 'create'])->name('requests.create');
     Route::post('/requests', [SubstituteRequestController::class, 'store'])->name('requests.store');
+    Route::get('/requests/mine', [SubstituteRequestController::class, 'mine'])->name('requests.mine');
     Route::get('/requests/{substituteRequest}', [SubstituteRequestController::class, 'show'])->name('requests.show');
+    Route::get('/requests/{substituteRequest}/edit', [SubstituteRequestController::class, 'edit'])->name('requests.edit');
+    Route::put('/requests/{substituteRequest}', [SubstituteRequestController::class, 'update'])->name('requests.update');
+    Route::delete('/requests/{substituteRequest}', [SubstituteRequestController::class, 'destroy'])->name('requests.destroy');
+    Route::post('/requests/{substituteRequest}/apply', [SubstituteRequestController::class, 'apply'])->name('requests.apply');
+    Route::post('/requests/{substituteRequest}/confirm', [SubstituteRequestController::class, 'confirm'])->name('requests.confirm');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/subjects', [ProfileController::class, 'updateSubjects'])->name('profile.subjects');
@@ -46,6 +53,7 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     Route::post('shifts/close', [DailyShiftController::class, 'close'])->name('shifts.close');
     Route::delete('shifts/close', [DailyShiftController::class, 'reopen'])->name('shifts.reopen');
     Route::post('shifts/clear', [DailyShiftController::class, 'clear'])->name('shifts.clear');
+    Route::get('requests', [StaffSubstituteRequestController::class, 'index'])->name('requests.index');
 });
 
 require __DIR__.'/auth.php';

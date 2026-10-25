@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\RequestStatus;
 use App\Enums\SlotKind;
 use App\Enums\TimetablePattern;
 use App\Models\ClosedDay;
@@ -100,7 +101,10 @@ class DailyShiftService
             }
             $targets = $query->lockForUpdate()->get();
 
-            if ($targets->contains(fn (Shift $shift) => $shift->substituteRequests->isNotEmpty())) {
+            // 取り消し・不成立だけの授業は変更できる（確定した代講と、まだ決まっていない依頼は守る）
+            $locked = fn (Shift $shift) => $shift->substituteRequests
+                ->contains(fn ($request) => $request->status->isActive() || $request->status === RequestStatus::Confirmed);
+            if ($targets->contains($locked)) {
                 throw ValidationException::withMessages(['cell' => '代講依頼が出ている授業は、ここでは変更できません。']);
             }
             Shift::whereIn('id', $targets->modelKeys())->delete();
