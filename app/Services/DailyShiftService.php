@@ -7,6 +7,7 @@ use App\Enums\SlotKind;
 use App\Enums\TimetablePattern;
 use App\Models\ClosedDay;
 use App\Models\Shift;
+use App\Models\SubstituteRequest;
 use App\Models\Term;
 use App\Models\TimeSlot;
 use App\Models\User;
@@ -103,7 +104,7 @@ class DailyShiftService
 
             // 取り消し・不成立だけの授業は変更できる（確定した代講と、まだ決まっていない依頼は守る）
             $locked = fn (Shift $shift) => $shift->substituteRequests
-                ->contains(fn ($request) => $request->status->isActive() || $request->status === RequestStatus::Confirmed);
+                ->contains(fn (SubstituteRequest $request) => $request->status->isActive() || $request->status === RequestStatus::Confirmed);
             if ($targets->contains($locked)) {
                 throw ValidationException::withMessages(['cell' => '代講依頼が出ている授業は、ここでは変更できません。']);
             }
