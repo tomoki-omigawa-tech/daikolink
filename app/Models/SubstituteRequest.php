@@ -16,6 +16,8 @@ use Illuminate\Support\Carbon;
  * @property int $requester_id
  * @property int|null $substitute_id
  * @property Carbon|null $confirmed_at
+ * @property Carbon|null $reminded_at
+ * @property Carbon|null $urgent_notified_at
  * @property-read Shift $shift
  * @property-read User $requester
  * @property-read User|null $substitute
@@ -41,6 +43,8 @@ class SubstituteRequest extends Model
             'status' => RequestStatus::class,
             'confirmed_at' => 'datetime',
             'staff_notified_at' => 'datetime',
+            'reminded_at' => 'datetime',
+            'urgent_notified_at' => 'datetime',
         ];
     }
 

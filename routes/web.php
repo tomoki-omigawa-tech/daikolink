@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/subjects', [ProfileController::class, 'updateSubjects'])->name('profile.subjects');
+    Route::put('/profile/notifications', [ProfileController::class, 'updateNotifications'])->name('profile.notifications');
 });
 
 Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(function () {

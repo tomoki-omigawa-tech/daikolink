@@ -37,6 +37,8 @@ techmeets Week 22〜24 の総合プロジェクトとして開発しました。
 | 応募・確定（Week 23） | 募集中の依頼に応募し、依頼者が確定するとシフトに反映。自分の依頼以外は編集・取り消しできない（Policy） |
 | メール通知（Week 23） | 代講の確定を当事者に通知（引き継ぎメモは本文に載せず、リンクのみ） |
 | 依頼状況の確認（スタッフ） | すべての代講依頼の状況を一覧で確認 |
+| 前日のリマインド | 代講が確定している先生に、前日の20:00に「【明日の代講】11/8（土）5限」のメールを送る |
+| 見つからないときの一斉連絡 | 当日の12:00に未確定の依頼があれば、その日に授業のない先生へ「【至急】本日の代講者を探しています」、スタッフへ未確定の一覧を送る。受け取るかどうかは講師がプロフィールで選べる |
 | プロフィール | プロフィール画像のアップロード・ニックネーム・担当できる科目。講師名クリックで表示 |
 | 科目管理（スタッフ） | 小学・中学・高校・その他（DOJO・キュレオ）の区分つき。追加・名前の変更・非表示 |
 
@@ -134,7 +136,7 @@ Feature テスト・Unit テスト（126件）で、権限・入力チェック�
 | 要件定義 | [要件定義書](docs/requirements/requirements.md)（Week 22 で実際の運用に合わせて追記） |
 | 設計 | [設計書の概要](docs/design/00_overview.md) ／ [画面設計書](docs/design/01_screen-design.md) ／ [DB設計書](docs/design/02_database-design.md) ／ [API仕様書](docs/design/03_api-specification.md) ／ [インフラ構成図](docs/design/05_infrastructure.md) |
 | 技術選定 | [技術選定資料](docs/tech-stack.md) |
-| 開発計画 | [工数見積もり](docs/design/04_estimation.md) ／ [プロダクトバックログ](docs/plan/01_user-stories.md) ／ [スプリント計画](docs/plan/02_sprint-plan.md) ／ [振り返り](docs/plan/04_retrospective.md) ／ [カンバン](docs/plan/03_kanban.md) ／ [KPI](docs/plan/05_kpi.md) ／ [見積書](docs/plan/06_estimate.md) |
+| 開発計画 | [工数見積もり](docs/design/04_estimation.md) ／ [プロダクトバックログ](docs/plan/01_user-stories.md) ／ [スプリント計画](docs/plan/02_sprint-plan.md) ／ [振り返り](docs/plan/04_retrospective.md) ／ [カンバン](docs/plan/03_kanban.md) ／ [KPI](docs/plan/05_kpi.md) ／ [見積書](docs/plan/06_estimate.md) ／ [改善案](docs/plan/07_improvements.md) |
 
 画面設計（Figma）：[DaikoLink ワイヤーフレーム](https://www.figma.com/design/HdwrVosRCATDjHIMcPdPYE/DaikoLink_Week19)
 
@@ -148,7 +150,6 @@ Feature テスト・Unit テスト（126件）で、権限・入力チェック�
 
 ## 今後の拡張予定
 
-- [ ] 未確定の代講依頼を、授業当日の正午にスタッフへ通知（Laravel のスケジューラーを本番で常駐させる）
 - [ ] 実際のメール送信（Amazon SES など）
 - [ ] アップロード画像の S3 保存
 - [ ] LINE への通知

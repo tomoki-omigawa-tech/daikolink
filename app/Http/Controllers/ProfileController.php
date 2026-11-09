@@ -64,4 +64,18 @@ class ProfileController extends Controller
 
         return Redirect::route('profile.edit')->with('status', 'subjects-updated');
     }
+
+    /**
+     * 講師本人が「急な代講の連絡を受け取るか」を切り替える
+     */
+    public function updateNotifications(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        abort_unless($user->isTeacher(), 403);
+
+        $user->accepts_urgent_requests = $request->boolean('accepts_urgent_requests');
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('status', 'notifications-updated');
+    }
 }

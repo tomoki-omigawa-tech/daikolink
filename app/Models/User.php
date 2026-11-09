@@ -22,7 +22,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public const ROLE_STAFF = 'staff';
 
     /**
-     * role と is_active は一括代入させず、スタッフの操作でのみ明示的に設定する
+     * role・is_active・accepts_urgent_requests は一括代入させず、スタッフの操作でのみ明示的に設定する
      */
     protected $fillable = [
         'name',
@@ -43,6 +43,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'accepts_urgent_requests' => 'boolean',
         ];
     }
 
@@ -64,6 +65,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function scopeTeachers(Builder $query): Builder
     {
         return $query->where('role', self::ROLE_TEACHER);
+    }
+
+    public function scopeStaff(Builder $query): Builder
+    {
+        return $query->where('role', self::ROLE_STAFF);
     }
 
     public function shifts(): HasMany
